@@ -1,5 +1,5 @@
 import { logger } from '../utils/logger.js';
-import { db } from '../db/client.js';
+import { prisma } from '../db/client.js';
 
 /**
  * Graceful shutdown時のクリーンアップ処理
@@ -11,7 +11,7 @@ export const onSignal = async (): Promise<void> => {
     {
       name: 'Database connections',
       task: async () => {
-        await db.$disconnect();
+        await prisma.$disconnect();
         logger.info('Database connections closed');
       },
     },
@@ -33,7 +33,8 @@ export const onSignal = async (): Promise<void> => {
         return { name, status: 'success' };
       } catch (error) {
         logger.error(`Failed to cleanup ${name}:`, error);
-        return { name, status: 'error', error: error.message };
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { name, status: 'error', error: errorMessage };
       }
     })
   );

@@ -1,6 +1,6 @@
 import { HealthCheckMap, TerminusState } from '@godaddy/terminus';
 import { logger } from '../utils/logger.js';
-import { db } from '../db/client.js';
+import { prisma } from '../db/client.js';
 
 /**
  * データベース接続のヘルスチェック
@@ -8,7 +8,7 @@ import { db } from '../db/client.js';
 export const databaseHealthCheck = async (): Promise<any> => {
   try {
     // Prismaの$queryRawでシンプルなクエリを実行
-    await db.$queryRaw`SELECT 1`;
+    await prisma.$queryRaw`SELECT 1`;
     return {
       status: 'connected',
       timestamp: new Date().toISOString(),

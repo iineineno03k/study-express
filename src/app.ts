@@ -63,48 +63,10 @@ export const createApp = (): Express => {
   // APIドキュメント設定
   setupApiDocs(app)
 
-  // ヘルスチェックエンドポイント（OpenAPIバリデーション前に配置）
-  app.get('/health', (_req: Request, res: Response) => {
-    res.json({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      environment: env.NODE_ENV,
-      version: '1.0.0',
-      uptime: process.uptime(),
-      responseTime: '1ms',
-      checks: {
-        database: { status: 'connected', timestamp: new Date().toISOString() },
-        redis: { status: 'not_configured', timestamp: new Date().toISOString() }
-      },
-      isShuttingDown: false,
-    })
-  })
+  // ヘルスチェックは @godaddy/terminus で実装（src/index.tsを参照）
 
-  app.get('/health/ready', (_req: Request, res: Response) => {
-    res.json({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      environment: env.NODE_ENV,
-      version: '1.0.0',
-      uptime: process.uptime(),
-      responseTime: '1ms',
-      checks: {
-        database: { status: 'connected', timestamp: new Date().toISOString() },
-        redis: { status: 'not_configured', timestamp: new Date().toISOString() }
-      },
-      isShuttingDown: false,
-    })
-  })
-
-  app.get('/health/live', (_req: Request, res: Response) => {
-    res.json({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-    })
-  })
-
-  // OpenAPI Validator（ヘルスチェック後に配置）
-  app.use(openApiValidator)
+  // OpenAPI Validator（APIルートのみに適用）
+  app.use(env.API_PREFIX, openApiValidator)
 
   // APIルート
   app.use(apiRouter)
