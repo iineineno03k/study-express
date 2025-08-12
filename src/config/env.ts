@@ -13,6 +13,11 @@ const envSchema = z.object({
   API_RATE_LIMIT_MAX_REQUESTS: z.string().transform(Number).default('100'),
   ALLOWED_ORIGINS: z.string().transform((str) => str.split(',')).default('http://localhost:3000'),
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
+  JWT_SECRET: z.string().optional(),
+  REDIS_URL: z.string().url().optional(),
+  POSTGRES_DB: z.string().default('express_study'),
+  POSTGRES_USER: z.string().default('postgres'),
+  POSTGRES_PASSWORD: z.string().optional(),
 })
 
 const parsed = envSchema.safeParse(process.env)

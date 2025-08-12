@@ -15,7 +15,13 @@
     "docs:lint": "redocly lint main@v2",
     "docs:build": "redocly build-docs main@v2 --output docs/redoc-static.html",
     "docs:serve": "npm run docs:build && npx http-server docs -p 8080 -o redoc-static.html",
-    "docs:bundle": "redocly bundle main@v2 --output docs/openapi-bundle.yaml"
+    "docs:bundle": "redocly bundle main@v2 --output docs/openapi-bundle.yaml",
+    "docker:build": "docker build -t express-typescript-study .",
+    "docker:dev": "docker-compose up -d",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:clean": "docker-compose down -v --rmi all"
   },
   "keywords": [
     "express",

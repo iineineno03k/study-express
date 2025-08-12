@@ -73,7 +73,34 @@
 
 ## 🚀 クイックスタート
 
-### 1. 環境準備
+### 🐳 Docker環境での開発（推奨）
+
+```bash
+# リポジトリのクローン
+git clone <repository-url>
+cd express_practice
+
+# 環境変数ファイルを設定
+cp .env.example .env
+
+# Docker Composeで開発環境を起動
+npm run docker:dev
+
+# サービスの状態確認
+docker-compose ps
+
+# ログの確認
+npm run docker:logs
+```
+
+起動後、以下のサービスが利用可能:
+- **API サーバー**: http://localhost:3000
+- **API ドキュメント**: http://localhost:3000/api-docs
+- **pgAdmin**: http://localhost:8080 (admin@example.com / admin)
+- **PostgreSQL**: localhost:5432
+- **Redis**: localhost:6379
+
+### 🖥️ ローカル環境での開発
 
 ```bash
 # 依存関係のインストール
@@ -81,36 +108,25 @@ npm install
 
 # PostgreSQLのセットアップ（Dockerを使用する場合）
 docker run --name postgres-study \
-  -e POSTGRES_USER=user \
-  -e POSTGRES_PASSWORD=password \
-  -e POSTGRES_DB=express_study_db \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=express_study \
   -p 5432:5432 \
   -d postgres:16
 
 # 環境変数の設定
 cp .env.example .env
 # .envファイルを編集してデータベース接続情報を設定
-```
 
-### 2. データベースセットアップ
-
-```bash
 # Prismaクライアントの生成
 npm run db:generate
 
 # マイグレーション実行
 npm run db:migrate
-```
 
-### 3. 開発サーバー起動
-
-```bash
+# 開発サーバー起動
 npm run dev
 ```
-
-サーバーが起動したら以下にアクセス:
-- API: http://localhost:3000/api/v1
-- ヘルスチェック: http://localhost:3000/health
 
 ## 📁 プロジェクト構造
 
@@ -145,6 +161,7 @@ express_practice/
 
 ## 🔧 主要コマンド
 
+### 📦 開発コマンド
 ```bash
 # 開発サーバー起動（ホットリロード付き）
 npm run dev
@@ -160,10 +177,54 @@ npm run lint
 
 # フォーマット
 npm run format
+```
 
-# Prismaコマンド
-npm run db:generate  # クライアント生成
-npm run db:migrate   # マイグレーション実行
+### 🗄️ データベース操作
+```bash
+# Prismaクライアント生成
+npm run db:generate
+
+# マイグレーション実行
+npm run db:migrate
+
+# シードデータ投入
+npm run db:seed
+```
+
+### 📚 ドキュメント生成
+```bash
+# OpenAPI仕様書の検証
+npm run docs:lint
+
+# HTMLドキュメント生成
+npm run docs:build
+
+# プレビューサーバー起動
+npm run docs:serve
+
+# 仕様書のバンドル
+npm run docs:bundle
+```
+
+### 🐳 Docker操作
+```bash
+# Dockerイメージをビルド
+npm run docker:build
+
+# 開発環境をDocker Composeで起動
+npm run docker:dev
+
+# 本番環境をDocker Composeで起動
+npm run docker:prod
+
+# Docker Composeを停止
+npm run docker:down
+
+# ログを表示
+npm run docker:logs
+
+# 全てのコンテナとボリュームを削除
+npm run docker:clean
 ```
 
 ## 🎓 学習のポイント
@@ -216,13 +277,34 @@ curl http://localhost:3000/api/v1/users/{userId}
 
 ## 🔍 トラブルシューティング
 
+### Docker環境のトラブル
+```bash
+# サービスの状態確認
+docker-compose ps
+
+# 特定のサービスのログ確認
+docker-compose logs app
+docker-compose logs db
+
+# コンテナを再起動
+docker-compose restart app
+
+# 全体をクリーンアップして再起動
+npm run docker:clean
+npm run docker:dev
+```
+
 ### データベース接続エラー
 ```bash
-# PostgreSQLが起動しているか確認
-docker ps
+# PostgreSQLコンテナが起動しているか確認
+docker-compose ps db
 
-# 接続情報を確認
-psql -h localhost -U user -d express_study_db
+# データベースに直接接続
+docker-compose exec db psql -U postgres -d express_study
+
+# pgAdminからの接続確認
+# http://localhost:8080 にアクセス
+# Host: db, Username: postgres, Password: postgres
 ```
 
 ### TypeScriptエラー
@@ -233,6 +315,21 @@ npm run db:generate
 # TypeScriptキャッシュをクリア
 rm -rf dist/
 npm run build
+
+# Dockerコンテナ内で実行する場合
+docker-compose exec app npm run db:generate
+```
+
+### ポート競合エラー
+```bash
+# 使用中のポートを確認
+lsof -i :3000
+lsof -i :5432
+lsof -i :8080
+
+# docker-compose.ymlでポート番号を変更
+# ports:
+#   - '3001:3000'  # ローカル:コンテナ
 ```
 
 ## 📚 参考資料
@@ -248,10 +345,34 @@ npm run build
 1. **認証機能の追加**: JWT/Passportの実装
 2. **テストの作成**: Jest/Vitestでのテスト
 3. **リアルタイム機能**: Socket.ioの統合
-4. **キャッシング**: Redis連携
+4. **キャッシング**: Redis連携（すでにdocker-compose.ymlに含まれています）
 5. **CI/CD**: GitHub Actions設定
 6. **モニタリング**: OpenTelemetry導入
+7. **本番デプロイ**: AWS/GCP/Azureへのデプロイ
+
+## 🐳 Docker環境の詳細
+
+### コンテナ構成
+- **app**: Express.jsアプリケーション
+- **db**: PostgreSQL 16データベース
+- **redis**: Redis 7キャッシュサーバー
+- **pgadmin**: データベース管理ツール
+
+### 開発vs本番環境
+```bash
+# 開発環境（ホットリロード、デバッグログ有効）
+npm run docker:dev
+
+# 本番環境（最適化、ログ制限）
+npm run docker:prod
+```
+
+### データ永続化
+Dockerボリュームで以下のデータが永続化されます:
+- PostgreSQLデータ
+- Redisデータ
+- pgAdminの設定
 
 ---
 
-頑張ってください！1週間で必ずマスターできます！💪# study-express
+頑張ってください！Docker環境で効率的に学習を進めましょう！💪🐳

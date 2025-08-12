@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # PostgreSQLデータベース
+  db:
+    image: postgres:16-alpine
+    container_name: express-study-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: express_study
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-db:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Expressアプリケーション
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: express-study-app
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/express_study
+      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:3001
+      LOG_LEVEL: debug
+    ports:
+      - '3000:3000'
+    volumes:
+      # 開発時のホットリロード用
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    networks:
+      - app-network
+    depends_on:
+      db:
+        condition: service_healthy
+    command: npm run dev
+
+  # Redis（セッション管理・キャッシュ用）
+  redis:
+    image: redis:7-alpine
+    container_name: express-study-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # pgAdmin（データベース管理用）
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: express-study-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - '8080:80'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - app-network
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
