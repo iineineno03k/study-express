@@ -1,0 +1,426 @@
+openapi: 3.0.3
+info:
+  title: Express TypeScript Study API
+  description: |
+    # Express + TypeScript学習用API
+    
+    このAPIは、Express.js + TypeScriptでのバックエンド開発を学習するためのサンプルAPIです。
+    
+    ## 主な機能
+    - ユーザー管理 (CRUD)
+    - 投稿管理 (CRUD)  
+    - 認証・認可
+    - バリデーション
+    
+    ## 認証方法
+    現在は認証なしでアクセス可能ですが、将来的にJWT認証を実装予定です。
+    
+    ## レート制限
+    - 15分間に100リクエストまで
+    - 制限を超えると429エラーを返します
+    
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+    url: https://github.com/your-repo
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+tags:
+  - name: Users
+    description: ユーザー管理API
+  - name: Posts
+    description: 投稿管理API
+paths:
+  /users:
+    get:
+      tags:
+        - Users
+      summary: ユーザー一覧取得
+      description: 登録されているユーザーの一覧を取得します
+      operationId: getUsers
+      parameters:
+        - name: page
+          in: query
+          description: ページ番号
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: 1ページあたりの件数
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Users
+      summary: ユーザー作成
+      description: 新規ユーザーを作成します
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /users/{userId}:
+    get:
+      tags:
+        - Users
+      summary: ユーザー詳細取得
+      description: 指定IDのユーザー情報を取得します
+      operationId: getUserById
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Users
+      summary: ユーザー更新
+      description: ユーザー情報を更新します
+      operationId: updateUser
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Users
+      summary: ユーザー削除
+      description: ユーザーを削除します
+      operationId: deleteUser
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204':
+          description: 削除成功
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /posts:
+    get:
+      tags:
+        - Posts
+      summary: 投稿一覧取得
+      description: 投稿の一覧を取得します
+      operationId: getPosts
+      parameters:
+        - name: userId
+          in: query
+          description: ユーザーIDでフィルタ
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Posts
+      summary: 投稿作成
+      description: 新規投稿を作成します
+      operationId: createPost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePostRequest'
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+components:
+  parameters:
+    UserId:
+      name: userId
+      in: path
+      required: true
+      description: ユーザーID
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - name
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ユーザーID
+        email:
+          type: string
+          format: email
+          description: メールアドレス
+        name:
+          type: string
+          description: ユーザー名
+          minLength: 1
+          maxLength: 100
+        bio:
+          type: string
+          description: 自己紹介
+          maxLength: 500
+        createdAt:
+          type: string
+          format: date-time
+          description: 作成日時
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新日時
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - name
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: メールアドレス
+        name:
+          type: string
+          description: ユーザー名
+          minLength: 1
+          maxLength: 100
+        password:
+          type: string
+          format: password
+          description: パスワード
+          minLength: 8
+          maxLength: 100
+        bio:
+          type: string
+          description: 自己紹介
+          maxLength: 500
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: ユーザー名
+          minLength: 1
+          maxLength: 100
+        bio:
+          type: string
+          description: 自己紹介
+          maxLength: 500
+    Post:
+      type: object
+      required:
+        - id
+        - title
+        - content
+        - userId
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        content:
+          type: string
+        userId:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/User'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreatePostRequest:
+      type: object
+      required:
+        - title
+        - content
+        - userId
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        content:
+          type: string
+        userId:
+          type: string
+          format: uuid
+    Pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          description: 現在のページ
+        limit:
+          type: integer
+          description: 1ページあたりの件数
+        total:
+          type: integer
+          description: 総件数
+        totalPages:
+          type: integer
+          description: 総ページ数
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - statusCode
+            - message
+          properties:
+            statusCode:
+              type: integer
+            message:
+              type: string
+            details:
+              type: object
+            timestamp:
+              type: string
+              format: date-time
+  responses:
+    BadRequest:
+      description: リクエストが不正です
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: リソースが見つかりません
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: リソースが既に存在します
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalServerError:
+      description: サーバーエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

@@ -29,7 +29,7 @@
 ### Day 2: API設計とOpenAPI
 - [x] OpenAPI仕様書の作成
 - [x] express-openapi-validatorの統合
-- [ ] Redoclyでのドキュメント生成
+- [x] Redoclyでのドキュメント生成
 
 **学習ポイント**:
 - RESTful API設計原則

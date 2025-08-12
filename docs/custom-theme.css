@@ -1,0 +1,44 @@
+/* カスタムRedocテーマ */
+
+/* メインカラー設定 */
+:root {
+  --main-color: #2563eb;          /* ブルー */
+  --success-color: #10b981;       /* グリーン */
+  --warning-color: #f59e0b;       /* イエロー */
+  --error-color: #ef4444;         /* レッド */
+  --background-color: #f8fafc;    /* ライトグレー */
+}
+
+/* ヘッダースタイル */
+.redoc-wrap .api-info h1 {
+  color: var(--main-color);
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+/* サイドバースタイル */
+.redoc-wrap .menu-content {
+  background-color: var(--background-color);
+  border-right: 1px solid #e2e8f0;
+}
+
+/* コードサンプルの背景色 */
+.redoc-wrap pre {
+  background-color: #1e293b !important;
+  border-radius: 8px;
+}
+
+/* レスポンスステータスコードの色分け */
+.redoc-wrap .response-title.success {
+  color: var(--success-color);
+}
+
+.redoc-wrap .response-title.error {
+  color: var(--error-color);
+}
+
+/* HTTPメソッドの色分け */
+.redoc-wrap .http-verb.get { background-color: #10b981; }
+.redoc-wrap .http-verb.post { background-color: #2563eb; }
+.redoc-wrap .http-verb.put { background-color: #f59e0b; }
+.redoc-wrap .http-verb.delete { background-color: #ef4444; }

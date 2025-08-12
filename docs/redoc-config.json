@@ -1,0 +1,35 @@
+{
+  "theme": {
+    "openapi": {
+      "hideDownloadButton": false,
+      "hideHostname": false,
+      "expandResponses": "200,201",
+      "generateCodeSamples": {
+        "skipOptionalParameters": true,
+        "languages": [
+          {
+            "lang": "curl",
+            "label": "cURL"
+          },
+          {
+            "lang": "javascript",
+            "label": "JavaScript (fetch)"
+          },
+          {
+            "lang": "python", 
+            "label": "Python (requests)"
+          },
+          {
+            "lang": "node",
+            "label": "Node.js (axios)"
+          }
+        ]
+      }
+    }
+  },
+  "scrollYOffset": 60,
+  "hideLoading": false,
+  "nativeScrollbars": false,
+  "pathInMiddlePanel": true,
+  "menuToggle": true
+}

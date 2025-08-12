@@ -1,0 +1,36 @@
+# Redocly CLI v2 設定ファイル
+extends:
+  - recommended
+
+apis:
+  main@v2:
+    root: api/openapi.yaml
+    rules:
+      # 必須ルール (エラーレベル)
+      operation-operationId: error
+      operation-summary: error
+      no-unused-components: error
+      
+      # 推奨ルール (警告レベル)  
+      tag-description: warn
+      operation-description: warn
+      operation-2xx-response: warn
+      
+      # カスタムルール
+      path-params-defined: error
+      no-ambiguous-paths: error
+      
+      # 学習用プロジェクトなので一部ルールを緩和
+      security-defined: off  # セキュリティ未実装なのでOFF
+      no-server-example.com: off  # localhostサーバーを許可
+      operation-4xx-response: warn  # 4xxレスポンスは警告レベル
+
+# OpenAPI ドキュメント設定
+openapi:
+  generateCodeSamples:
+    languages:
+      - lang: curl
+      - lang: JavaScript  
+      - lang: Python
+  hideLogo: false
+  hideDownloadButton: false
