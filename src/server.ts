@@ -41,12 +41,6 @@ export const createServer = (port: number = 0): Server => {
       }
     },
     
-    // ヘルスチェック失敗時のログ
-    onHealthCheckFailed: (healthCheckName: string, error: Error) => {
-      if (process.env.NODE_ENV !== 'test') {
-        logger.error(`Health check failed: ${healthCheckName}`, error)
-      }
-    },
   })
   
   return server

@@ -1,4 +1,3 @@
-import { createApp } from './app.js'
 import { createServer } from './server.js'
 import { env } from './config/env.js'
 import { logger } from './utils/logger.js'
@@ -21,7 +20,7 @@ const startServer = async (): Promise<void> => {
 
     // プロセス終了時のエラーハンドリング
     process.on('unhandledRejection', (reason, promise) => {
-      logger.error('Unhandled Rejection at:', promise, 'reason:', reason)
+      logger.error('Unhandled Rejection:', { promise, reason })
       // アプリケーションを終了
       process.exit(1)
     })

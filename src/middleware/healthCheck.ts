@@ -15,7 +15,8 @@ export const databaseHealthCheck = async (): Promise<any> => {
     };
   } catch (error) {
     logger.error('Database health check failed:', error);
-    throw new Error(`Database connection failed: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Database connection failed: ${message}`);
   }
 };
 
@@ -82,7 +83,7 @@ export const healthCheck = async (state: TerminusState): Promise<any> => {
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'unknown',
       responseTime: `${responseTime}ms`,
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
       isShuttingDown: state.isShuttingDown,
     };
   }
@@ -92,7 +93,7 @@ export const healthCheck = async (state: TerminusState): Promise<any> => {
  * Terminus用のヘルスチェックマップ
  */
 export const healthChecks: HealthCheckMap = {
-  '/health': healthCheck,
-  '/health/ready': healthCheck, // Kubernetes readiness probe用
+  '/health': ({ state }) => healthCheck(state),
+  '/health/ready': ({ state }) => healthCheck(state), // Kubernetes readiness probe用
   '/health/live': async () => ({ status: 'ok', timestamp: new Date().toISOString() }), // Kubernetes liveness probe用（軽量）
 };
