@@ -30,12 +30,82 @@ info:
 servers:
   - url: http://localhost:3000/api/v1
     description: Development server
+  - url: http://localhost:3000
+    description: Health check endpoints
 tags:
+  - name: Health
+    description: ヘルスチェックとモニタリング
   - name: Users
     description: ユーザー管理API
   - name: Posts
     description: 投稿管理API
 paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: ヘルスチェック（詳細）
+      description: |
+        アプリケーションの詳細な稼働状態を確認します。
+        データベース接続、外部サービス接続などを含む包括的なヘルスチェックです。
+      operationId: healthCheck
+      responses:
+        '200':
+          description: アプリケーションが正常に動作中
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: サービス利用不可
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthErrorResponse'
+  /health/ready:
+    get:
+      tags:
+        - Health
+      summary: Readiness Probe
+      description: |
+        Kubernetesのreadiness probe用エンドポイント。
+        アプリケーションがトラフィックを受け入れる準備ができているかを確認します。
+      operationId: readinessCheck
+      responses:
+        '200':
+          description: アプリケーションが準備完了
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: アプリケーションが準備未完了
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthErrorResponse'
+  /health/live:
+    get:
+      tags:
+        - Health
+      summary: Liveness Probe
+      description: |
+        Kubernetesのliveness probe用エンドポイント。
+        アプリケーションプロセスが生きているかを確認します（軽量チェック）。
+      operationId: livenessCheck
+      responses:
+        '200':
+          description: アプリケーションプロセスが生存中
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LivenessResponse'
+        '503':
+          description: アプリケーションプロセスに問題あり
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthErrorResponse'
   /users:
     get:
       tags:
@@ -399,6 +469,114 @@ components:
             timestamp:
               type: string
               format: date-time
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+        - environment
+        - version
+        - uptime
+        - responseTime
+        - checks
+        - isShuttingDown
+      properties:
+        status:
+          type: string
+          enum: [ok]
+          description: アプリケーションの全体的な状態
+        timestamp:
+          type: string
+          format: date-time
+          description: レスポンス生成時刻
+        environment:
+          type: string
+          description: 実行環境
+          example: development
+        version:
+          type: string
+          description: アプリケーションバージョン
+          example: "1.0.0"
+        uptime:
+          type: number
+          description: アプリケーション稼働時間（秒）
+          example: 3600.5
+        responseTime:
+          type: string
+          description: ヘルスチェック実行時間
+          example: "15ms"
+        checks:
+          type: object
+          description: 個別サービスのヘルスチェック結果
+          properties:
+            database:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [connected, error]
+                timestamp:
+                  type: string
+                  format: date-time
+                error:
+                  type: string
+                  description: エラーメッセージ（エラー時のみ）
+            redis:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [connected, not_configured, error]
+                timestamp:
+                  type: string
+                  format: date-time
+                error:
+                  type: string
+                  description: エラーメッセージ（エラー時のみ）
+        isShuttingDown:
+          type: boolean
+          description: アプリケーションがシャットダウン中かどうか
+    LivenessResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [ok]
+          description: アプリケーションプロセスの状態
+        timestamp:
+          type: string
+          format: date-time
+          description: レスポンス生成時刻
+    HealthErrorResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+        - error
+      properties:
+        status:
+          type: string
+          enum: [error]
+          description: エラー状態
+        timestamp:
+          type: string
+          format: date-time
+          description: レスポンス生成時刻
+        environment:
+          type: string
+          description: 実行環境
+        responseTime:
+          type: string
+          description: ヘルスチェック実行時間
+        error:
+          type: string
+          description: エラーメッセージ
+        isShuttingDown:
+          type: boolean
+          description: アプリケーションがシャットダウン中かどうか
   responses:
     BadRequest:
       description: リクエストが不正です

@@ -24,5 +24,9 @@ USER appuser
 # ポート3000を公開
 EXPOSE 3000
 
+# ヘルスチェックの設定（/health/liveエンドポイントを使用）
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health/live || exit 1
+
 # アプリケーションを起動
 CMD ["npm", "start"]
